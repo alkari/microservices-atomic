@@ -2,19 +2,23 @@
 
 **Using Atomic, Kubernetes, Docker, Flannel and etcd.**
 
-A microservices software architecture is as an approach to developing a single application as a suite of small services, each running in its own process and communicating with lightweight mechanisms, often an HTTP resource API. These services are independently deployable and scallable by fully automated deployment machinery and each service provides a firm module boundary with a minimum of centralized management.
+The term "*Microservice Architecture*" has sprung up over the last few years as the way forward for deploying applications. *Docker* on the other hand has broken the record in how fast it moved from a cool and disruptive technology to a commodity platform, given the addition of tools like *Kubernetes* orchestration engine and a healthy ecosystem of supporting open-source projects.
 
-This article will allow you to build that in a lab environment and will walk you through step-by-step deployment of its various components.
+How important is this? Well consider Google is running all of their services in containers for several years now, something to the tune of 2 billion containers per day. Need I say more?
 
-To ensure anyone can try this walkthrough, I'll be using freely available tools and resources. You wil need a web browser and an ssh client to build this powerful microservices architecture on ***[TryStack.org][1]*** using ***Fedora 23*** and ***CentOS Atomic Host 7***, which is a lightweight operating system that has been assembled out of upstream RPM content and designed to run applications in Docker containers. Amongst other core modules, it includes:
+A microservices software architecture is as an approach to developing a single application as a suite of small services, each running in its own process and communicating with lightweight mechanisms, often an HTTP resource API. These services are independently deployable and scalable by fully automated deployment machinery and each service provides a firm module boundary with a minimum of centralized management.
 
-**Kubernetes** - an open-source platform for automating deployment, scaling, and operations of application containers across clusters of hosts. It orchestrates applications roll out and scale out accross most public and private cloud infrastructures.
+You've heard enough, and you are so ready to give this architecture a run, right? This article will allow you to build that in a lab environment and will walk you through step-by-step deployment of its various components.
 
-**Docker** - an open platform for building, shipping and running distributed applications. It gives programmers, development teams and operations engineers the common toolbox they need to take advantage of the distributed and networked nature of modern applications.
+To ensure anyone can try this walkthrough, we'll be using freely available tools and resources. You will need a web browser and an ssh client to build this powerful microservices architecture on ***[TryStack.org][1]*** using ***Fedora 23*** and ***CentOS Atomic Host 7***, which is a lightweight operating system that has been assembled out of upstream RPM content and designed to run applications in Docker containers. Amongst other core modules, it includes:
 
-**etcd** - an open-source distributed key value store that provides shared configuration and service discovery for clusters. etcd runs on each machine in a cluster and gracefully handles master election during network partitions and the loss of the current master. Application containers running on your cluster can read and write data into etcd. Common examples are storing database connection details, cache settings, feature flags, etc.
+***Kubernetes*** - an open-source platform for automating deployment, scaling, and operations of application containers across clusters of hosts. It orchestrates applications roll out and scale out across most public and private cloud infrastructures.
 
-**Flannel** - a very simple overlay network that meets Kubernetes requirements where all containers can communicate with all other containers without NAT and all nodes can communicate with all containers (and vice-versa) without NAT, and the IP that a container sees itself as is the same IP that others see it as.
+***Docker*** - an open platform for building, shipping and running distributed applications. It gives programmers, development teams and operations engineers the common toolbox they need to take advantage of the distributed and networked nature of modern applications.
+
+***etcd*** - an open-source distributed key value store that provides shared configuration and service discovery for clusters. etcd runs on each machine in a cluster and gracefully handles master election during network partitions and the loss of the current master. Application containers running on your cluster can read and write data into etcd. Common examples are storing database connection details, cache settings, feature flags, etc.
+
+***Flannel*** - a very simple overlay network that meets Kubernetes requirements where all containers can communicate with all other containers without NAT and all nodes can communicate with all containers (and vice-versa) without NAT, and the IP that a container sees itself as is the same IP that others see it as.
 
 * * *
 
@@ -50,13 +54,13 @@ Click Access & Security then Create Security Group. Give it a name and click Man
 
 ## 3- Create Network and Router
 
-Under Network, click Network Topology then Create Network, give it a name and click next to create a subnet with some name and a Netwrok Address 10.10.10.0/24, then enter 8.8.8.8 in the DNS Name Servers on the next screen.
+Under Network, click Network Topology then Create Network, give it a name and click next to create a subnet with some name and a Network Address 10.10.10.0/24, then enter 8.8.8.8 in the DNS Name Servers on the next screen.
 
 Next, click Create Router, name it something you like and make sure "public" is selected as the External Network.
 
-Back in Network Topology, hover over your router and click Add Interface, select your subnet and click the blue "Add Interfcace" button.
+Back in Network Topology, hover over your router and click Add Interface, select your subnet and click the blue "Add Interface" button.
 
-Your network toplogy should now look something like this (minus the instances)...
+Your network topology should now look something like this (minus the instances)...
 
 ![enter image description here][5]
 
@@ -66,7 +70,7 @@ We are limited to 3 instances in this sandbox which will keep the number of our 
 
 ### Create *master* (Fedora)
 
-From Images, click Launch Instance from your Fedora image, enter "master" for Image Name and select m1.small Flavor, make sure the Security Group you cretated above is checked in Access & Security. Also ensure your Network is selected then under Post-Creation, select "Direct Input" for Customization Script Source dropdown and paste this in Script Data:
+From Images, click Launch Instance from your Fedora image, enter "master" for Image Name and select m1.small Flavor, make sure the Security Group you created above is checked in Access & Security. Also ensure your Network is selected then under Post-Creation, select "Direct Input" for Customization Script Source dropdown and paste this in Script Data:
 
     #cloud-config
     password: redhat123
@@ -155,7 +159,7 @@ Then create the local-registry.service for this container:
 
     [centos@registry ~]$ cat <<EOF |sudo tee -a /etc/systemd/system/local-registry.service
     [Unit]
-    Description=Local Docker Regitry Cache
+    Description=Local Docker Registry Cache
     Requires=docker.service
     After=docker.service
     [Install]
@@ -168,7 +172,7 @@ Then create the local-registry.service for this container:
     EOF
     
 
-and enable, start and set its SElinux context:
+and enable, start and set its SELinux context:
 
     [centos@registry ~]$ sudo systemctl daemon-reload
     [centos@registry ~]$ sudo systemctl enable local-registry
